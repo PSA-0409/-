@@ -20,6 +20,7 @@ Create `.env` from the example and set keys:
 ```bash
 cp .env.example .env
 ```
+Do not commit your `.env` file. Keep API keys in environment variables only.
 
 Environment variables:
 - `OPENAI_API_KEY` (required)
