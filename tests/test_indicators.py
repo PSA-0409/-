@@ -16,7 +16,7 @@ def sample_intraday():
 def test_compute_vwap():
     df = sample_intraday()
     vwap = compute_vwap(df)
-    assert round(vwap, 4) == 10.0
+    assert round(vwap, 4) == 9.75  # typical=(H+L+C)/3 の出来高加重平均
 
 
 def test_compute_vdu_range_ratio():

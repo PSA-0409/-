@@ -10,7 +10,8 @@ from screener.indicators import build_indicator_snapshot
 from screener.llm import call_llm
 from screener.notify import send_discord
 from screener.schemas import LlmTickerPayload
-from screener.alpha_vantage import AlphaVantageClient
+from screener.finnhub_client import FinnhubClient
+from screener.spread import compute_spread_proxy
 from screener.utils import (
     OUTPUT_DIR,
     iter_with_pause,
@@ -75,15 +76,6 @@ def build_payload(
     )
 
 
-def spread_proxy(snapshot) -> str:
-    if snapshot.bid is not None and snapshot.ask is not None:
-        mid = (snapshot.bid + snapshot.ask) / 2
-        if mid == 0:
-            return "unknown"
-        return f"{(snapshot.ask - snapshot.bid) / mid:.4f}"
-    return "unknown"
-
-
 def load_tickers(arg_tickers: str) -> list[str]:
     if arg_tickers:
         return [t.strip().upper() for t in arg_tickers.split(",") if t.strip()]
@@ -119,7 +111,7 @@ def main() -> int:
         logger.error("ティッカーが指定されていません")
         return 1
 
-    client = AlphaVantageClient()
+    client = FinnhubClient()
     payloads: list[LlmTickerPayload] = []
 
     for ticker in iter_with_pause(tickers, args.sleep):
@@ -139,7 +131,7 @@ def main() -> int:
             float_shares=snapshot.float_info.shares,
             intraday=intraday,
             interval=snapshot.intraday_interval,
-            spread_proxy=spread_proxy(snapshot),
+            spread_proxy=compute_spread_proxy(snapshot, intraday),
         )
 
         payloads.append(
