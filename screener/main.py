@@ -7,8 +7,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from screener.indicators import build_indicator_snapshot
-from screener.llm import call_llm
 from screener.notify import send_discord
+from screener.report import build_report
 from screener.schemas import LlmTickerPayload
 from screener.finnhub_client import FinnhubClient
 from screener.spread import compute_spread_proxy
@@ -83,24 +83,6 @@ def load_tickers(arg_tickers: str) -> list[str]:
     return file_tickers
 
 
-def summarize_no_candidates(payloads: list[LlmTickerPayload]) -> str:
-    reasons = {"回転率高すぎ": 0, "出来高低い": 0, "板情報不明": 0, "日中データ不足": 0}
-    for payload in payloads:
-        if payload.rotation >= 3:
-            reasons["回転率高すぎ"] += 1
-        if payload.rvol < 1:
-            reasons["出来高低い"] += 1
-        if payload.spread_l2_notes == "unknown":
-            reasons["板情報不明"] += 1
-        if not payload.intraday_available:
-            reasons["日中データ不足"] += 1
-    top = sorted(reasons.items(), key=lambda item: item[1], reverse=True)[:3]
-    reason_lines = "\n".join([f"- {reason}" for reason, count in top if count > 0])
-    if not reason_lines:
-        reason_lines = "- 該当条件なし"
-    return f"**No qualified candidates**\n\n主な理由:\n{reason_lines}"
-
-
 def main() -> int:
     load_dotenv()
     args = parse_args()
@@ -148,21 +130,17 @@ def main() -> int:
         logger.error("有効なティッカーがありません")
         return 1
 
-    logger.info("LLM解析を開始します")
-    response = call_llm(payloads)
+    logger.info("ルールベースレポートを生成します")
+    report = build_report(payloads, top_n=args.top)
 
     timestamp = now_timestamp()
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    save_text(response, OUTPUT_DIR / f"{timestamp}_analysis.md")
+    save_text(report, OUTPUT_DIR / f"{timestamp}_analysis.md")
     save_json(payloads, OUTPUT_DIR / f"{timestamp}_payload.json")
+    logger.info("レポート保存完了: outputs/%s_analysis.md", timestamp)
 
     if args.notify.lower() == "discord":
-        has_ab = any(label in response for label in ["A", "B", "ランクA", "ランクB"])
-        if has_ab:
-            message = response
-        else:
-            message = summarize_no_candidates(payloads)
-        send_discord(message)
+        send_discord(report)
         logger.info("Discordへ通知しました")
     else:
         logger.info("通知はスキップされました")
