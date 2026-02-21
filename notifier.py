@@ -1,9 +1,9 @@
 """Notification module for the Morning Scanner.
 
 Supported channels (in priority order):
-  1. Slack Webhook  — set SLACK_WEBHOOK_URL
-  2. Email (SMTP)   — set SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / NOTIFY_EMAIL
-  3. Local file     — always written to output/ regardless of notification success
+  1. Discord Webhook — set DISCORD_WEBHOOK_URL
+  2. Email (SMTP)    — set SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / NOTIFY_EMAIL
+  3. Local file      — always written to output/ regardless of notification success
 
 Usage (called from scanner.py):
     from notifier import send_notification
@@ -27,7 +27,7 @@ import requests
 # ---------------------------------------------------------------------------
 
 
-def _split_message(message: str, limit: int = 3_900) -> list[str]:
+def _split_message(message: str, limit: int = 1_900) -> list[str]:
     """Split *message* into chunks ≤ *limit* chars, breaking at line boundaries."""
     if len(message) <= limit:
         return [message]
@@ -53,17 +53,21 @@ def _split_message(message: str, limit: int = 3_900) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Slack
+# Discord
 # ---------------------------------------------------------------------------
 
 
-def send_slack(message: str, webhook_url: str) -> None:
-    """Post *message* to a Slack incoming webhook, splitting if needed."""
+def send_discord(message: str, webhook_url: str) -> None:
+    """Post *message* to a Discord incoming webhook, splitting if needed.
+
+    Discord enforces a 2000-character limit per message; chunks are kept
+    under 1900 chars to leave headroom for any surrounding whitespace.
+    """
     chunks = _split_message(message)
     for chunk in chunks:
         resp = requests.post(
             webhook_url,
-            json={"text": chunk},
+            json={"content": chunk},
             timeout=15,
         )
         resp.raise_for_status()
@@ -113,15 +117,15 @@ def send_notification(
     if logger is None:
         logger = logging.getLogger("scanner")
 
-    # ── Try Slack first ────────────────────────────────────────────────
-    slack_url = os.getenv("SLACK_WEBHOOK_URL", "").strip()
-    if slack_url:
+    # ── Try Discord first ──────────────────────────────────────────────
+    discord_url = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
+    if discord_url:
         try:
-            send_slack(report, slack_url)
-            logger.info("Slack通知送信完了")
+            send_discord(report, discord_url)
+            logger.info("Discord通知送信完了")
             return
         except Exception as exc:  # noqa: BLE001
-            logger.error("[ERROR] Slack通知エラー: %s", exc)
+            logger.error("[ERROR] Discord通知エラー: %s", exc)
             # Fall through to email
 
     # ── Try email ─────────────────────────────────────────────────────
@@ -158,5 +162,5 @@ def send_notification(
 
     logger.warning(
         "通知先が設定されていません。"
-        "SLACK_WEBHOOK_URL または SMTP_* / NOTIFY_EMAIL を .env に設定してください。"
+        "DISCORD_WEBHOOK_URL または SMTP_* / NOTIFY_EMAIL を .env に設定してください。"
     )

@@ -133,7 +133,7 @@ project/
 
 ### 通知先（優先順位で設定）
 
-- **Slack Webhook**（推奨）: `SLACK_WEBHOOK_URL` 環境変数
+- **Discord Webhook**（推奨）: `DISCORD_WEBHOOK_URL` 環境変数
 - **メール**（代替）: `SMTP_*` 環境変数
 - **ローカルファイル**: 常に `output/` に保存（通知の成否に関わらず）
 
@@ -170,7 +170,7 @@ TICKER  $X.XX  -XX%  D2/D1:0.XX  [タグ1][タグ2]
 ```env
 FMP_API_KEY=your_key_here
 POLYGON_API_KEY=your_key_here        # オプション
-SLACK_WEBHOOK_URL=your_webhook_here  # 通知先
+DISCORD_WEBHOOK_URL=your_webhook_here  # 通知先
 SMTP_HOST=smtp.gmail.com             # メール通知の場合
 SMTP_PORT=587
 SMTP_USER=your_email
