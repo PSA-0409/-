@@ -1,12 +1,13 @@
 # Micro-Float Screener
 
-Fully automated micro-float stock screening + risk management with Alpha Vantage, OpenAI Chat Completions, and Discord notifications.
+Fully automated micro-float stock screening + risk management with Alpha Vantage, OpenAI Chat Completions, and Discord/Notion notifications.
 
 ## Features
 - Alpha Vantage data collection with retry/backoff and intraday fallbacks.
 - Core metrics: Float Rotation, RVOL, VWAP, VDU ratio, and RangeRatio.
 - Japanese structured prompt for Compression→Ignition→Expansion detection and Distribution→Collapse exclusion.
 - Discord webhook notifications with message chunking.
+- Notion database notifications for archived daily reports.
 - CLI execution and scheduling guidance.
 
 ## Setup
@@ -26,12 +27,16 @@ Environment variables:
 - `OPENAI_API_KEY` (required)
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
 - `DISCORD_WEBHOOK_URL` (required for Discord notifications)
+- `NOTION_API_KEY` (required for Notion notifications)
+- `NOTION_DATABASE_ID` (required for Notion notifications)
+- `NOTION_TITLE_PROPERTY` (optional, default `Name`)
 - `ALPHAVANTAGE_API_KEY` (required for market data)
 
 ## Usage
 ### CLI
 ```bash
 python -m screener --tickers TICK1,TICK2 --notify discord --interval 1m --top 5
+python -m screener --tickers TICK1,TICK2 --notify notion --interval 1m --top 5
 ```
 
 You can also provide tickers via `tickers.txt` (one per line). If `--tickers` is omitted, the file is used.

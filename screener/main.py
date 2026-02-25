@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from screener.indicators import build_indicator_snapshot
 from screener.llm import call_llm
-from screener.notify import send_discord
+from screener.notify import send_discord, send_notion
 from screener.schemas import LlmTickerPayload
 from screener.alpha_vantage import AlphaVantageClient
 from screener.utils import (
@@ -25,7 +25,7 @@ from screener.utils import (
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Micro-float stock screener")
     parser.add_argument("--tickers", type=str, default="", help="Comma-separated tickers")
-    parser.add_argument("--notify", type=str, default="", help="Notification channel (discord)")
+    parser.add_argument("--notify", type=str, default="", help="Notification channel (discord/notion)")
     parser.add_argument("--interval", type=str, default="1m", help="Preferred interval (1m/5m)")
     parser.add_argument("--top", type=int, default=5, help="Top candidates count")
     parser.add_argument("--sleep", type=float, default=0.4, help="Sleep seconds between tickers")
@@ -164,7 +164,8 @@ def main() -> int:
     save_text(response, OUTPUT_DIR / f"{timestamp}_analysis.md")
     save_json(payloads, OUTPUT_DIR / f"{timestamp}_payload.json")
 
-    if args.notify.lower() == "discord":
+    notify_channel = args.notify.lower()
+    if notify_channel == "discord":
         has_ab = any(label in response for label in ["A", "B", "ランクA", "ランクB"])
         if has_ab:
             message = response
@@ -172,6 +173,9 @@ def main() -> int:
             message = summarize_no_candidates(payloads)
         send_discord(message)
         logger.info("Discordへ通知しました")
+    elif notify_channel == "notion":
+        send_notion(response)
+        logger.info("Notionへ通知しました")
     else:
         logger.info("通知はスキップされました")
 
