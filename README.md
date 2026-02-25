@@ -57,3 +57,26 @@ You can also provide tickers via `tickers.txt` (one per line). If `--tickers` is
 - **Alpha Vantage rate limits**: free tier is limited. The screener retries with backoff, and you should schedule accordingly.
 - **Discord length limit**: messages are chunked by paragraph to stay below 2000 characters.
 - **Markets closed**: intraday bars may be unavailable. The screener will fall back to recent daily data and label metrics as estimated.
+
+## PR Monitor (Discord通知システム)
+`pr_monitor/` に PR監視ボットを追加しました。FMPニュースを監視し、重要度分類・翻訳・Discord Embed通知を行います。
+
+### 構成
+- `pr_monitor/pr_monitor.py`: メインループ（`--once`, `--penny`, `--large`, `--ticker`）
+- `pr_monitor/classifier.py`: Tier1/Tier2/Tier3 分類
+- `pr_monitor/translator.py`: `claude` / `deepl` / `none`
+- `pr_monitor/market_data.py`: 株価・時価総額・浮動株取得
+- `pr_monitor/discord_sender.py`: Discord Embed送信
+- `pr_monitor/config.yaml`: 監視設定
+- `pr_monitor/seen_ids.json`: 重複送信防止
+
+### 使い方
+```bash
+PYTHONPATH=. python pr_monitor/pr_monitor.py --once
+PYTHONPATH=. python pr_monitor/pr_monitor.py --penny --once
+PYTHONPATH=. python pr_monitor/pr_monitor.py --ticker NVDA --once
+```
+
+### 注意
+- `translation_engine: claude` を使う場合は `anthropic` パッケージを追加インストールしてください。
+- `translation_engine: deepl` は `deepl_api_key` を設定してください。

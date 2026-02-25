@@ -1,0 +1,27 @@
+watchlist:
+  penny_stocks:
+    - ACHR
+    - ASTS
+    - LUNR
+  large_caps:
+    - NVDA
+    - TSLA
+    - MSFT
+
+penny_threshold_usd: 300000000
+
+poll_interval: 300
+lookback_hours: 6
+
+# translation_engine: claude | deepl | none
+translation_engine: none
+
+# API keys
+fmp_api_key: ""
+anthropic_api_key: ""
+deepl_api_key: ""
+
+# Discord webhooks
+discord:
+  penny_webhook: ""
+  large_cap_webhook: ""
