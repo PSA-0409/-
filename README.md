@@ -1,9 +1,9 @@
 # Micro-Float Screener
 
-Fully automated micro-float stock screening + risk management with Alpha Vantage, OpenAI Chat Completions, and Discord notifications.
+Fully automated micro-float stock screening + risk management with Yahoo Finance, OpenAI Chat Completions, and Discord notifications.
 
 ## Features
-- Alpha Vantage data collection with retry/backoff and intraday fallbacks.
+- Yahoo Finance data collection with retry/backoff and intraday fallbacks (no API key required).
 - Core metrics: Float Rotation, RVOL, VWAP, VDU ratio, and RangeRatio.
 - Japanese structured prompt for Compression→Ignition→Expansion detection and Distribution→Collapse exclusion.
 - Discord webhook notifications with message chunking.
@@ -26,7 +26,6 @@ Environment variables:
 - `OPENAI_API_KEY` (required)
 - `OPENAI_MODEL` (optional, default `gpt-4o-mini`)
 - `DISCORD_WEBHOOK_URL` (required for Discord notifications)
-- `ALPHAVANTAGE_API_KEY` (required for market data)
 
 ## Usage
 ### CLI
@@ -48,7 +47,7 @@ You can also provide tickers via `tickers.txt` (one per line). If `--tickers` is
 - Logs: `logs/YYYYMMDD_HHMMSS.log`
 
 ## Troubleshooting
-- **Alpha Vantage missing fields**: floatShares/bid-ask are not provided. The screener estimates float from SharesOutstanding and marks missing data as `推定` in the LLM prompt.
-- **Alpha Vantage rate limits**: free tier is limited. The screener retries with backoff, and you should schedule accordingly.
+- **Yahoo Finance missing fields**: floatShares is provided directly when available. If missing, the screener estimates from SharesOutstanding and marks data as `推定` in the LLM prompt.
+- **Yahoo Finance rate limits**: excessive requests may be throttled. The screener retries with backoff, and you should schedule accordingly.
 - **Discord length limit**: messages are chunked by paragraph to stay below 2000 characters.
 - **Markets closed**: intraday bars may be unavailable. The screener will fall back to recent daily data and label metrics as estimated.

@@ -10,7 +10,7 @@ from screener.indicators import build_indicator_snapshot
 from screener.llm import call_llm
 from screener.notify import send_discord
 from screener.schemas import LlmTickerPayload
-from screener.alpha_vantage import AlphaVantageClient
+from screener.yahoo_finance import YahooFinanceClient
 from screener.utils import (
     OUTPUT_DIR,
     iter_with_pause,
@@ -119,7 +119,7 @@ def main() -> int:
         logger.error("ティッカーが指定されていません")
         return 1
 
-    client = AlphaVantageClient()
+    client = YahooFinanceClient()
     payloads: list[LlmTickerPayload] = []
 
     for ticker in iter_with_pause(tickers, args.sleep):
